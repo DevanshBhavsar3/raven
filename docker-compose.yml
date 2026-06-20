@@ -1,0 +1,34 @@
+services:
+  raven-db:
+    image: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${RAVEN_DATABASE_PASSWORD}
+      - MYSQL_DATABASE=${RAVEN_DATABASE_NAME}
+    command: --init-file /data/application/init.sql
+    volumes:
+      - ./internal/database/init.sql:/data/application/init.sql
+    networks:
+      - raven-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: ./infra/dockerfile
+    environment:
+      - DOPPLER_TOKEN
+    networks:
+      - raven-network
+    depends_on:
+      raven-db:
+        condition: service_healthy
+
+networks:
+  raven-network:
+    driver: bridge
