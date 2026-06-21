@@ -13,7 +13,7 @@ tasks:
   test:
     desc: Test raven application
     cmds:
-      - doppler run -- go test ./... -cover
+      - doppler run -- go test ./... -v -cover
   migrations:new:
     desc: Create a new database migration
     vars:

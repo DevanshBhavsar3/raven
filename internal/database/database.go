@@ -15,7 +15,7 @@ import (
 func New(config *config.ApplicationConfig) *sqlx.DB {
 	hostPort := net.JoinHostPort(config.Database.Host, strconv.Itoa(config.Database.Port))
 	encodedPassword := url.QueryEscape(config.Database.Password)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&multiStatements=true",
 		config.Database.User,
 		encodedPassword,
 		hostPort,

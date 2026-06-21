@@ -21,6 +21,8 @@ services:
     build:
       context: .
       dockerfile: ./infra/dockerfile
+    ports:
+      - "${RAVEN_SERVER_PORT}:${RAVEN_SERVER_PORT}"
     environment:
       - DOPPLER_TOKEN
     networks:

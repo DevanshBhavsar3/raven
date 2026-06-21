@@ -10,7 +10,12 @@ import (
 )
 
 type ApplicationConfig struct {
+	Server   ServerConfig   `koanf:"server" validate:"required"`
 	Database DatabaseConfig `koanf:"database" validate:"required"`
+}
+
+type ServerConfig struct {
+	Port int `koanf:"port" validate:"required"`
 }
 
 type DatabaseConfig struct {
