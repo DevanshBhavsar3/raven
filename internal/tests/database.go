@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"path/filepath"
 	"testing"
@@ -10,9 +11,11 @@ import (
 	"github.com/DevanshBhavsar3/raven/internal/database"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/moby/moby/api/types/network"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func GetMySQLTestDB(ctx context.Context, t *testing.T) *sqlx.DB {
@@ -20,11 +23,23 @@ func GetMySQLTestDB(ctx context.Context, t *testing.T) *sqlx.DB {
 	cfg := config.Load()
 
 	mysqlContainer, err := mysql.Run(ctx,
-		"mysql:8.0.36",
+		"mysql",
 		mysql.WithDatabase(cfg.Database.Name),
 		mysql.WithUsername(cfg.Database.User),
 		mysql.WithPassword(cfg.Database.Password),
 		mysql.WithScripts(filepath.Join("..", "..", "database", "init.sql")),
+		testcontainers.WithWaitStrategy(
+			wait.ForSQL("3306/tcp", "mysql", func(host string, port network.Port) string {
+				return fmt.Sprintf(
+					"%s:%s@tcp(%s:%s)/%s",
+					cfg.Database.User,
+					cfg.Database.Password,
+					host,
+					port.Port(),
+					cfg.Database.Name,
+				)
+			}),
+		),
 	)
 	require.NoError(t, err)
 
@@ -42,7 +57,11 @@ func GetMySQLTestDB(ctx context.Context, t *testing.T) *sqlx.DB {
 
 	cfg.Database.Host = host
 	cfg.Database.Port = int(port.Num())
-	database.Migrate(ctx, cfg)
+
+	err = database.Migrate(ctx, cfg)
+	if err != nil {
+		log.Fatalf("error migrating database: %v", err)
+	}
 
 	t.Cleanup(func() {
 		if err := testcontainers.TerminateContainer(mysqlContainer); err != nil {

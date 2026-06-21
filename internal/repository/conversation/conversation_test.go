@@ -3,7 +3,9 @@ package repository_test
 import (
 	"context"
 	"testing"
+	"time"
 
+	models "github.com/DevanshBhavsar3/raven/internal/models/conversation"
 	repository "github.com/DevanshBhavsar3/raven/internal/repository/conversation"
 	"github.com/DevanshBhavsar3/raven/internal/tests"
 	"github.com/stretchr/testify/assert"
@@ -14,24 +16,32 @@ func TestCreateConversation(t *testing.T) {
 	ctx := context.Background()
 	db := tests.GetMySQLTestDB(ctx, t)
 
-	r := repository.NewConversationRepository(db)
-
 	tcs := []struct {
 		title string
-		name  string
+		test  func(t *testing.T, ctx context.Context, r *repository.ConversationRepository)
 	}{
 		{
-			title: "Create Test Conversation",
-			name:  "Test Conversation 1",
+			title: "create new conversation",
+			test: func(t *testing.T, ctx context.Context, r *repository.ConversationRepository) {
+				conversation, err := r.CreateConversation(ctx, &models.Conversation{
+					Name:      "Test Conversation",
+					UserID:    "1",
+					CreatedAt: time.Now(),
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, conversation.ID, int64(1))
+				assert.Equal(t, conversation.Name, "Test Conversation")
+				assert.Equal(t, conversation.UserID, "1")
+			},
 		},
 	}
 
-	for _, tc := range tcs {
-		conversation, err := r.CreateConversation(tc.name, "1")
-		require.NoError(t, err)
+	r := repository.NewConversationRepository(db)
 
-		assert.Equal(t, conversation.Name, tc.name)
-		assert.Equal(t, conversation.UserID, "1")
+	for _, tc := range tcs {
+		tc.test(t, ctx, r)
 	}
 }
 
