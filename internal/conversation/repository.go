@@ -1,4 +1,4 @@
-package repositories
+package conversation
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	models "github.com/DevanshBhavsar3/raven/internal/models/conversation"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -39,14 +38,14 @@ func (r *ConversationRepository) CreateConversation(ctx context.Context, userID 
 	return id, nil
 }
 
-func (r *ConversationRepository) GetAllConversations(ctx context.Context, userID string) ([]models.Conversation, error) {
+func (r *ConversationRepository) GetAllConversations(ctx context.Context, userID string) ([]Conversation, error) {
 	query := `
 		SELECT id, name, user_id, created_at, updated_at
 		FROM conversations
 		WHERE user_id = ?;
 	`
 
-	conversations := []models.Conversation{}
+	conversations := []Conversation{}
 
 	err := r.db.SelectContext(ctx, &conversations, query, userID)
 	if err != nil {
@@ -56,14 +55,14 @@ func (r *ConversationRepository) GetAllConversations(ctx context.Context, userID
 	return conversations, nil
 }
 
-func (r *ConversationRepository) GetConversationByID(ctx context.Context, userID string, id int64) (*models.Conversation, error) {
+func (r *ConversationRepository) GetConversationByID(ctx context.Context, userID string, id int64) (*Conversation, error) {
 	query := `
 		SELECT id, name, user_id, created_at, updated_at
 		FROM conversations
 		WHERE id = ? AND user_id = ?;
 	`
 
-	conversation := &models.Conversation{}
+	conversation := &Conversation{}
 	err := r.db.GetContext(ctx, conversation, query, id, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

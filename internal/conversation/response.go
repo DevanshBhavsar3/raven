@@ -1,4 +1,4 @@
-package models
+package conversation
 
 import "time"
 
@@ -50,13 +50,7 @@ func NewGetAllConversationsResponse(conversations []Conversation) GetAllConversa
 // Get coversation by id response
 // ########################################
 
-type GetConversationByIDResponse struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	UserID    string    `json:"userId"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-}
+type GetConversationByIDResponse ConversationResponse
 
 func NewGetConversationByIDResponse(conversation *Conversation) GetConversationByIDResponse {
 	return GetConversationByIDResponse{

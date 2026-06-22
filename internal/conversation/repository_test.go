@@ -1,11 +1,11 @@
-package repositories_test
+package conversation_test
 
 import (
 	"context"
 	"os"
 	"testing"
 
-	repositories "github.com/DevanshBhavsar3/raven/internal/repositories/conversation"
+	"github.com/DevanshBhavsar3/raven/internal/conversation"
 	"github.com/DevanshBhavsar3/raven/internal/tests"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +35,7 @@ func TestCreateConversation(t *testing.T) {
 			title: "create new conversation",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				conversationID, err := r.CreateConversation(ctx, "create-test-user-id", "Test Conversation")
 				require.NoError(t, err)
@@ -59,7 +59,7 @@ func TestGetAllConversations(t *testing.T) {
 			title: "get conversations for a user with no conversations",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				conversations, err := r.GetAllConversations(ctx, "get-conversations-test-user-id")
 				require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestGetAllConversations(t *testing.T) {
 			title: "get conversations after creating a conversation",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				_, err := r.CreateConversation(ctx, "get-conversations-test-user-id", "Test Conversation")
 				require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestGetAllConversations(t *testing.T) {
 			title: "get conversations for a different user",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				_, err := r.CreateConversation(ctx, "get-conversations-test-user2-id", "Test Conversation 2")
 				require.NoError(t, err)
@@ -122,7 +122,7 @@ func TestGetConversationByID(t *testing.T) {
 			title: "get conversation by id",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				conversationID, err := r.CreateConversation(ctx, "get-conversation-by-id-test-user-id", "Test Conversation")
 				require.NoError(t, err)
@@ -138,7 +138,7 @@ func TestGetConversationByID(t *testing.T) {
 			title: "get conversation by id for a different user",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				conversationID, err := r.CreateConversation(ctx, "get-conversation-by-id-test-user2-id", "Test Conversation 2")
 				require.NoError(t, err)
@@ -151,7 +151,7 @@ func TestGetConversationByID(t *testing.T) {
 			title: "get non-existent conversation",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				_, err := r.GetConversationByID(ctx, "get-conversation-by-id-test-user-id", 999)
 				require.Error(t, err)
@@ -173,7 +173,7 @@ func TestDeleteConversation(t *testing.T) {
 			title: "delete conversation",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				conversationID, err := r.CreateConversation(ctx, "delete-conversation-test-user-id", "Test Conversation")
 				require.NoError(t, err)
@@ -189,7 +189,7 @@ func TestDeleteConversation(t *testing.T) {
 			title: "delete conversation for a different user",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				conversationID, err := r.CreateConversation(ctx, "delete-conversation-test-user2-id", "Test Conversation 2")
 				require.NoError(t, err)
@@ -208,7 +208,7 @@ func TestDeleteConversation(t *testing.T) {
 			title: "delete non-existent conversation",
 			test: func(t *testing.T) {
 				ctx := t.Context()
-				r := repositories.NewConversationRepository(db)
+				r := conversation.NewConversationRepository(db)
 
 				err := r.DeleteConversation(ctx, "delete-conversation-test-user-id", 999)
 				require.Error(t, err)

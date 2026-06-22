@@ -1,28 +1,27 @@
-package handlers
+package conversation
 
 import (
 	"encoding/json"
 	"net/http"
 	"strconv"
 
-	models "github.com/DevanshBhavsar3/raven/internal/models/conversation"
-	services "github.com/DevanshBhavsar3/raven/internal/services/conversation"
+	"github.com/DevanshBhavsar3/raven/internal/conversation/message"
 	"github.com/DevanshBhavsar3/raven/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
 type ConversationHandler struct {
-	service *services.ConversationService
+	service *ConversationService
 }
 
-func NewConversationHandler(service *services.ConversationService) *ConversationHandler {
+func NewConversationHandler(service *ConversationService) *ConversationHandler {
 	return &ConversationHandler{
 		service: service,
 	}
 }
 
 func (h *ConversationHandler) CreateConversation(w http.ResponseWriter, r *http.Request) {
-	payload := &models.CreateConversationRequest{}
+	payload := &CreateConversationRequest{}
 
 	err := utils.BindAndValidate(r, payload)
 	if err != nil {
@@ -42,7 +41,7 @@ func (h *ConversationHandler) CreateConversation(w http.ResponseWriter, r *http.
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	res := models.NewCreateConversationResponse(id)
+	res := NewCreateConversationResponse(id)
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -61,7 +60,7 @@ func (h *ConversationHandler) GetAllConversations(w http.ResponseWriter, r *http
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	res := models.NewGetAllConversationsResponse(conversations)
+	res := NewGetAllConversationsResponse(conversations)
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -87,7 +86,7 @@ func (h *ConversationHandler) GetConversationByID(w http.ResponseWriter, r *http
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	res := models.NewGetConversationByIDResponse(conversation)
+	res := NewGetConversationByIDResponse(conversation)
 	err = json.NewEncoder(w).Encode(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -111,4 +110,71 @@ func (h *ConversationHandler) DeleteConversation(w http.ResponseWriter, r *http.
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ConversationHandler) CreateMessage(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "conversationID")
+	conversationID, err := strconv.ParseInt(id, 10, 64)
+
+	payload := &message.CreateMessageRequest{}
+
+	err = utils.BindAndValidate(r, payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// TODO: use actual user id from auth context
+	_, err = h.service.GetConversationByID(r.Context(), "1", conversationID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	messageID, err := h.service.CreateMessage(r.Context(), payload.Content, payload.Role, conversationID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	res := message.NewCreateMessageResponse(messageID)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *ConversationHandler) GetMessagesByConversationID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "conversationID")
+	conversationID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, "invalid conversation id", http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.service.GetConversationByID(r.Context(), "1", conversationID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	messages, err := h.service.GetMessagesByConversationID(r.Context(), conversationID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	res := message.NewGetMessagesByConversationIDResponse(messages)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"path/filepath"
+	"runtime"
 
 	"github.com/DevanshBhavsar3/raven/internal/config"
 	"github.com/DevanshBhavsar3/raven/internal/database"
@@ -21,12 +22,19 @@ type MySQLContainer struct {
 func NewMySQLTestDB(ctx context.Context) *MySQLContainer {
 	cfg := config.Load()
 
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("unable to determine caller")
+	}
+
+	helperDir := filepath.Dir(file)
+
 	mysqlContainer, err := mysql.Run(ctx,
 		"mysql:8.0.36",
 		mysql.WithDatabase(cfg.Database.Name),
 		mysql.WithUsername(cfg.Database.User),
 		mysql.WithPassword(cfg.Database.Password),
-		mysql.WithScripts(filepath.Join("..", "..", "database", "init.sql")),
+		mysql.WithScripts(filepath.Join(helperDir, "../database/init.sql")),
 	)
 	if err != nil {
 		log.Fatalf("failed to start MySQL container: %v", err)
