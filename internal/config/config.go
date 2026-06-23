@@ -12,6 +12,7 @@ import (
 type ApplicationConfig struct {
 	Server   ServerConfig   `koanf:"server" validate:"required"`
 	Database DatabaseConfig `koanf:"database" validate:"required"`
+	Auth     AuthConfig     `koanf:"auth" validate:"required"`
 }
 
 type ServerConfig struct {
@@ -24,6 +25,10 @@ type DatabaseConfig struct {
 	User     string `koanf:"user" validate:"required"`
 	Password string `koanf:"password" validate:"required"`
 	Name     string `koanf:"name" validate:"required"`
+}
+
+type AuthConfig struct {
+	SecretKey string `koanf:"secretkey" validate:"required"`
 }
 
 var prefix = "RAVEN_"

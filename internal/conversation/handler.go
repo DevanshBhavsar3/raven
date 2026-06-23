@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/DevanshBhavsar3/raven/internal/conversation/message"
+	"github.com/DevanshBhavsar3/raven/internal/middlewares"
 	"github.com/DevanshBhavsar3/raven/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
@@ -29,8 +30,11 @@ func (h *ConversationHandler) CreateConversation(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// TODO: use actual user id from auth context
-	userID := "1"
+	userID, ok := middlewares.GetUserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
 
 	id, err := h.service.CreateConversation(r.Context(), userID, payload)
 	if err != nil {
@@ -50,8 +54,13 @@ func (h *ConversationHandler) CreateConversation(w http.ResponseWriter, r *http.
 }
 
 func (h *ConversationHandler) GetAllConversations(w http.ResponseWriter, r *http.Request) {
-	// TODO: use actual user id from auth context
-	conversations, err := h.service.GetAllConversation(r.Context(), "1")
+	userID, ok := middlewares.GetUserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	conversations, err := h.service.GetAllConversation(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -76,8 +85,13 @@ func (h *ConversationHandler) GetConversationByID(w http.ResponseWriter, r *http
 		return
 	}
 
-	// TODO: use actual user id from auth context
-	conversation, err := h.service.GetConversationByID(r.Context(), "1", conversationID)
+	userID, ok := middlewares.GetUserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	conversation, err := h.service.GetConversationByID(r.Context(), userID, conversationID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -102,8 +116,13 @@ func (h *ConversationHandler) DeleteConversation(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// TODO: use actual user id from auth context
-	err = h.service.DeleteConversation(r.Context(), "1", conversationID)
+	userID, ok := middlewares.GetUserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	err = h.service.DeleteConversation(r.Context(), userID, conversationID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -124,8 +143,12 @@ func (h *ConversationHandler) CreateMessage(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// TODO: use actual user id from auth context
-	_, err = h.service.GetConversationByID(r.Context(), "1", conversationID)
+	userID, ok := middlewares.GetUserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "user id not found in context", http.StatusUnauthorized)
+		return
+	}
+	_, err = h.service.GetConversationByID(r.Context(), userID, conversationID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
